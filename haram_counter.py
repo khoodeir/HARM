@@ -144,7 +144,7 @@ def get_stream_url(url: str) -> str:
         m = re.search(r"youtube\.com/live/([\w-]{6,})", url)
         if m:                                   # نشيل باراميترات المشاركة (?si=...)
             url = f"https://www.youtube.com/watch?v={m.group(1)}"
-        cmd = [sys.executable, "-m", "yt_dlp", "-g", "-f", "best[height<=720]/best",
+        cmd = [sys.executable, "-m", "yt_dlp", "-g", "-f", "best[height<=720]/best/bv*[height<=720]/bv*/b",
                "--no-warnings"]
         if ARGS.cookies_browser:
             cmd += ["--cookies-from-browser", ARGS.cookies_browser]
