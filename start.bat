@@ -4,5 +4,6 @@ cd /d "%~dp0"
 if not exist .venv ( python -m venv .venv )
 call .venv\Scripts\activate.bat
 pip install -q -r requirements.txt
+pip install -q -U "yt-dlp[default]"
 python haram_counter.py %*
 pause

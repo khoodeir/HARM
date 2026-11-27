@@ -361,7 +361,7 @@ const CONFIG = {
       const age = Date.now() / 1000 - (d.ts || 0);
       if (d.status !== 'live' || age > 8){
         setStatus('wait', d.status === 'starting' ? 'جارٍ التهيئة' : 'البث غير متاح');
-        notice(d.status === 'starting' ? 'جارٍ تهيئة النموذج وفتح البث…' : 'لا توجد إطارات جديدة من البث. سيعيد الخادم الاتصال تلقائياً.');
+        notice(d.error ? 'تعذّر تشغيل البث: ' + d.error : (d.status === 'starting' ? 'جارٍ تهيئة النموذج وفتح البث…' : 'لا توجد إطارات جديدة من البث. سيعيد الخادم الاتصال تلقائياً.'));
         updateCenterLabel(d); d = null;
       } else {
         setStatus('live', 'متصل · ' + srv.name);

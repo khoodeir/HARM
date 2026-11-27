@@ -14,7 +14,9 @@ import argparse
 import json
 import math
 import os
+import re
 import subprocess
+import sys
 import threading
 import time
 from collections import Counter, defaultdict, deque
@@ -57,6 +59,7 @@ class Camera:
         self.calibrated = not self.auto
         self.pts = deque(maxlen=6000)
         self.stop = False
+        self.error = ""                          # آخر خطأ (يظهر في اللوحة)
         self.cond = threading.Condition()
         self.jpeg, self.seq = None, 0
         self.state = self._base("starting")
@@ -65,19 +68,20 @@ class Camera:
         return {"name": self.name, "status": status, "ts": 0, "total": 0, "fps": 0,
                 "center": list(self.center),
                 "center_mode": "auto" if self.auto else "manual",
-                "calibrated": self.calibrated,
+                "calibrated": self.calibrated, "error": self.error,
                 "motion": {"tawaf": 0, "standing": 0, "walking": 0},
                 "ihram": {"ihram": 0, "regular": 0}, "gender": None}
 
     def set_status(self, status):
         with self.cond:
-            self.state = dict(self.state, status=status)
+            self.state = dict(self.state, status=status, error=self.error)
 
     def publish(self, frame, stats, total, fps, has_gender):
         h, w = frame.shape[:2]
         small = frame if w <= JPEG_WIDTH else cv2.resize(
             frame, (JPEG_WIDTH, int(h * JPEG_WIDTH / w)), interpolation=cv2.INTER_AREA)
         ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 72])
+        self.error = ""
         state = self._base("live")
         state.update(
             ts=time.time(), total=total, fps=round(fps, 1),
@@ -137,12 +141,22 @@ def remove_camera(idx):
 # ---------------- التحليل ----------------
 def get_stream_url(url: str) -> str:
     if url.startswith("http") and ("youtube.com" in url or "youtu.be" in url):
-        out = subprocess.run(
-            ["yt-dlp", "-g", "-f", "best[height<=720]/best", url],
-            capture_output=True, text=True)
+        m = re.search(r"youtube\.com/live/([\w-]{6,})", url)
+        if m:                                   # نشيل باراميترات المشاركة (?si=...)
+            url = f"https://www.youtube.com/watch?v={m.group(1)}"
+        cmd = [sys.executable, "-m", "yt_dlp", "-g", "-f", "best[height<=720]/best",
+               "--no-warnings"]
+        if ARGS.cookies_browser:
+            cmd += ["--cookies-from-browser", ARGS.cookies_browser]
+        if ARGS.cookies:
+            cmd += ["--cookies", ARGS.cookies]
+        if ARGS.js_runtimes:
+            cmd += ["--js-runtimes", ARGS.js_runtimes]
+        out = subprocess.run(cmd + [url], capture_output=True, text=True)
         lines = out.stdout.strip().splitlines()
         if not lines:
-            raise RuntimeError("yt-dlp مقدرش يجيب رابط البث: " + out.stderr[-200:])
+            err = [l for l in out.stderr.strip().splitlines() if l.strip()]
+            raise RuntimeError("yt-dlp فشل: " + (err[-1] if err else "بدون رسالة")[:300])
         return lines[0]
     return url
 
@@ -312,7 +326,8 @@ def run_camera(cam):
                 raise RuntimeError("تعذّر فتح البث")
             process(cam, cap, model, clf)
         except Exception as e:  # noqa
-            print(f"[{cam.name}] {e}")
+            cam.error = str(e)[:300]
+            print(f"[{cam.name}] {cam.error}")
         if not cam.stop:
             cam.set_status("reconnecting")
             time.sleep(3)
@@ -454,6 +469,11 @@ def main():
     ap.add_argument("--device", default=None, help="مثلاً cuda:0 أو cpu")
     ap.add_argument("--gender", action="store_true",
                     help="تفعيل تصنيف الجنس (غير موثوق من الكاميرات العلوية)")
+    ap.add_argument("--cookies-from-browser", dest="cookies_browser", default=None,
+                    help="لو يوتيوب طلب تسجيل الدخول: chrome أو edge أو firefox")
+    ap.add_argument("--cookies", default=None, help="ملف cookies.txt بديل")
+    ap.add_argument("--js-runtimes", dest="js_runtimes", default=None,
+                    help="مثلاً node لو yt-dlp طلب مشغّل جافاسكربت")
     ap.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8765)))
     ap.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
     ap.add_argument("--token", default=os.environ.get("HARAM_TOKEN", ""),
