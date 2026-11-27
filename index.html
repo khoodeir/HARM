@@ -3,388 +3,501 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>لوحة عدّاد الحرم</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🕋%3C/text%3E%3C/svg%3E">
+<meta name="color-scheme" content="light">
+<title>منظومة رصد وإحصاء الطواف</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f3ee;--card:#ffffff;--ink:#1c1c1a;--mute:#6a6963;--line:#e3e1d9;
-  --tawaf:#0f766e;--stand:#c2410c;--walk:#2563eb;
-  --ihram:#a16207;--regular:#64748b;--male:#2563eb;--female:#be185d;
-  --ok:#15803d;--warn:#b45309;--bad:#b91c1c;--chip:#efeee8;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --bg:#11120f;--card:#1a1b17;--ink:#ecebe5;--mute:#9a9990;--line:#2b2c26;
-    --tawaf:#2dd4bf;--stand:#fb923c;--walk:#60a5fa;
-    --ihram:#facc15;--regular:#94a3b8;--male:#60a5fa;--female:#f472b6;
-    --ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--chip:#24251f;
-  }
+  color-scheme:light;
+  --bg:#f4f5f7; --panel:#ffffff; --ink:#1b2430; --mute:#5f6b7a; --line:#d8dce2;
+  --navy:#1f3a5f; --navy-soft:#e8edf4; --head:#f0f2f5;
+  --tawaf:#2e7d5b; --stand:#b45309; --walk:#aaaaaa; --bad:#a32020;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
-.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 48px}
-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
-h1{font-size:1.5rem;font-weight:800;margin:0;display:flex;align-items:center;gap:10px}
-.sub{color:var(--mute);font-size:.9rem;margin:2px 0 0}
-.status{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.9rem;font-weight:600}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--mute)}
-.dot.live{background:var(--ok);animation:pulse 1.6s infinite}
-.dot.demo{background:var(--warn)}
-.dot.bad{background:var(--bad)}
-@keyframes pulse{50%{opacity:.35}}
-.banner{display:none;background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--warn);border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:.92rem}
-.banner.show{display:block}
-.grid{display:grid;gap:14px}
-.kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
-.kpi .label{color:var(--mute);font-size:.9rem;display:flex;align-items:center;gap:8px}
-.kpi .sw{width:10px;height:10px;border-radius:3px}
-.kpi .num{font-size:2.4rem;font-weight:800;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
-.kpi .pct{color:var(--mute);font-size:.88rem}
-.two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-bottom:14px}
-h2{font-size:1.02rem;margin:0 0 12px;font-weight:700}
-.bar{display:flex;height:34px;border-radius:10px;overflow:hidden;background:var(--chip)}
-.bar span{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;min-width:0;transition:width .5s ease}
-.legend{display:flex;justify-content:space-between;margin-top:10px;font-size:.95rem}
-.legend b{font-variant-numeric:tabular-nums}
-.na{color:var(--mute);font-size:.92rem;padding:8px 0}
-.chartbox{margin-bottom:14px}
-canvas{width:100%;height:260px;display:block}
-.keys{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:.88rem;color:var(--mute)}
-.keys i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-inline-end:6px}
-.meta{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:14px}
-.meta .v{font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums}
-.meta .k{color:var(--mute);font-size:.85rem}
-.settings{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
-.settings label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mute);gap:4px;flex:1 1 260px}
-input[type=text],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;direction:ltr;text-align:left}
-select{direction:rtl;text-align:right}
-button{font:inherit;font-weight:600;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 14px}
-button.primary{background:var(--tawaf);color:#fff;border-color:transparent}
-@media (prefers-color-scheme:dark){button.primary{color:#04201d}}
-button:hover{filter:brightness(1.06)}
-details{margin-top:14px}
-summary{cursor:pointer;font-weight:700}
-.help{color:var(--mute);font-size:.88rem;margin:10px 0 0}
-code{background:var(--chip);padding:1px 6px;border-radius:6px;direction:ltr;unicode-bidi:embed;font-size:.85em}
-footer{color:var(--mute);font-size:.82rem;margin-top:18px}
+body{font-family:'Cairo','Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 40px}
+
+.top{background:var(--navy);color:#fff}
+.top .in{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.top h1{margin:0;font-size:1.2rem;font-weight:700}
+.top .sub{margin:0;font-size:.82rem;opacity:.8}
+.top .right{display:flex;align-items:center;gap:18px;font-size:.88rem}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border:1px solid rgba(255,255,255,.35);border-radius:4px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:#9aa5b4}
+.dot.live{background:#5fd39a}.dot.wait{background:#f0b35a}.dot.bad{background:#f08a8a}
+#clock{font-variant-numeric:tabular-nums;opacity:.9}
+
+.notice{display:none;margin:16px 0 0;padding:10px 14px;background:#fff8ec;border:1px solid #ecd9b6;border-inline-start:4px solid #b45309;font-size:.9rem}
+.notice.show{display:block}
+
+.tabs{display:flex;margin:16px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font:inherit;font-weight:600;color:var(--mute);background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 18px;cursor:pointer;white-space:nowrap;border-radius:0}
+.tab:hover{color:var(--ink);background:transparent}
+.tab.on{color:var(--navy);border-bottom-color:var(--navy)}
+
+.panel{background:var(--panel);border:1px solid var(--line);margin-top:16px}
+.panel>.hd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--head);border-bottom:1px solid var(--line)}
+.panel>.hd h2{margin:0;font-size:1rem;font-weight:700;color:var(--navy)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.legend{display:flex;gap:14px;font-size:.85rem;color:var(--mute);align-items:center}
+.sw{display:inline-block;width:10px;height:10px;border:1px solid rgba(0,0,0,.25);margin-inline-end:6px;vertical-align:-1px}
+.cmode{font-size:.82rem;color:var(--mute);padding:2px 10px;border:1px solid var(--line);background:#fff}
+button{font:inherit;font-size:.88rem;font-weight:600;color:var(--navy);background:#fff;border:1px solid var(--navy);padding:5px 14px;cursor:pointer;border-radius:3px}
+button:hover{background:var(--navy-soft)}
+button.solid{background:var(--navy);color:#fff}
+button.solid:hover{background:#17304f}
+button.on{background:var(--navy);color:#fff}
+button.danger{color:var(--bad);border-color:var(--bad)}
+button.danger:hover{background:#fbeaea}
+
+.stage{position:relative;background:#0e1116;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.stage img{width:100%;height:100%;object-fit:contain;display:block}
+.stage.pick{cursor:crosshair;outline:3px solid #b45309;outline-offset:-3px}
+.stage .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#c4cbd6;text-align:center;padding:20px}
+.stage .ph b{font-size:1.1rem;font-weight:600}
+.stage .ph span{font-size:.9rem;opacity:.8}
+.hint{display:none;position:absolute;top:10px;inset-inline:10px;margin:auto;width:fit-content;background:#b45309;color:#fff;padding:5px 14px;font-weight:600;font-size:.9rem;border-radius:3px}
+.stage.pick .hint{display:block}
+
+.total{display:flex;align-items:baseline;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+.total .k{font-weight:600;color:var(--mute)}
+.total .v{font-size:2.4rem;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.grp{padding:14px 18px;border-inline-end:1px solid var(--line)}
+.grp:last-child{border-inline-end:0}
+.grp h3{margin:0 0 8px;font-size:.92rem;font-weight:700;color:var(--navy)}
+table{width:100%;border-collapse:collapse}
+td{padding:7px 0;border-top:1px solid var(--line);font-size:.95rem;vertical-align:middle}
+td.n{width:64px;text-align:left;font-weight:700;font-variant-numeric:tabular-nums}
+td.p{width:48px;text-align:left;color:var(--mute);font-variant-numeric:tabular-nums}
+td.m{width:34%;padding-inline-start:10px}
+.meter{height:8px;background:var(--navy-soft)}
+.meter span{display:block;height:100%;transition:width .4s ease}
+.na{color:var(--mute);font-size:.88rem;padding:8px 0}
+
+.chartwrap{padding:12px 16px 14px}
+canvas{width:100%;height:240px;display:block}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid var(--line)}
+.fact{padding:10px 16px;border-inline-end:1px solid var(--line)}
+.fact:last-child{border-inline-end:0}
+.fact .v{font-weight:700;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.fact .k{color:var(--mute);font-size:.8rem}
+
+/* الإعدادات */
+.sec{padding:14px 16px;border-top:1px solid var(--line)}
+.sec:first-of-type{border-top:0}
+.sec h3{margin:0 0 4px;font-size:.95rem;font-weight:700;color:var(--navy)}
+.sec .note{margin:0 0 10px;color:var(--mute);font-size:.84rem}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .grow{flex:1 1 220px}
+.row .nm{flex:0 1 170px}
+.row .tk{flex:0 1 150px}
+.row .tag{font-size:.78rem;color:var(--mute);border:1px solid var(--line);padding:1px 8px;white-space:nowrap}
+.row .url{flex:1 1 260px;direction:ltr;text-align:left;color:var(--mute);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+input[type=text],input[type=password],select{font:inherit;font-size:.9rem;color:var(--ink);background:#fff;border:1px solid var(--line);padding:6px 10px;border-radius:3px;width:100%}
+input.ltr{direction:ltr;text-align:left}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.sdot{width:9px;height:9px;border-radius:50%;background:#c4cbd6;flex:0 0 auto}
+.sdot.ok{background:var(--tawaf)}.sdot.no{background:var(--bad)}
+.msg{font-size:.85rem;color:var(--bad);margin-top:8px;min-height:1em}
+footer{color:var(--mute);font-size:.8rem;margin-top:16px}
 </style>
 </head>
 <body>
+<div class="top"><div class="in">
+  <div>
+    <h1>منظومة رصد وإحصاء الطواف</h1>
+    <p class="sub">المسجد الحرام · تحليل البث المباشر</p>
+  </div>
+  <div class="right">
+    <span id="clock"></span>
+    <span class="badge"><span class="dot" id="dot"></span><span id="statusText">جارٍ التحميل</span></span>
+  </div>
+</div></div>
+
 <div class="wrap">
-  <header>
-    <div>
-      <h1>🕋 لوحة عدّاد الحرم</h1>
-      <p class="sub">طواف · وقوف · إحرام · ذكور وإناث، من تحليل البث المباشر</p>
-    </div>
-    <div class="status"><span class="dot" id="dot"></span><span id="statusText">جارٍ التحميل…</span></div>
-  </header>
+  <div class="notice" id="notice"></div>
+  <div class="tabs" id="tabs"></div>
 
-  <div class="banner" id="banner"></div>
-
-  <section class="grid kpis">
-    <div class="card kpi"><div class="label"><span class="sw" style="background:var(--ink)"></span>إجمالي الأشخاص</div><div class="num" id="kTotal">0</div><div class="pct">&nbsp;</div></div>
-    <div class="card kpi"><div class="label"><span class="sw" style="background:var(--tawaf)"></span>طائفون</div><div class="num" id="kTawaf">0</div><div class="pct" id="pTawaf">0%</div></div>
-    <div class="card kpi"><div class="label"><span class="sw" style="background:var(--stand)"></span>واقفون</div><div class="num" id="kStand">0</div><div class="pct" id="pStand">0%</div></div>
-    <div class="card kpi"><div class="label"><span class="sw" style="background:var(--walk)"></span>ماشون (غير طواف)</div><div class="num" id="kWalk">0</div><div class="pct" id="pWalk">0%</div></div>
-  </section>
-
-  <section class="grid two">
-    <div class="card">
-      <h2>الملابس</h2>
-      <div class="bar" id="barIhram"></div>
-      <div class="legend">
-        <span><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--ihram);margin-inline-end:6px"></span>إحرام: <b id="nIhram">0</b></span>
-        <span><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--regular);margin-inline-end:6px"></span>ملابس عادية: <b id="nReg">0</b></span>
-      </div>
-    </div>
-    <div class="card">
-      <h2>النوع</h2>
-      <div id="genderOn">
-        <div class="bar" id="barGender"></div>
+  <section class="panel">
+    <div class="hd">
+      <h2 id="camTitle">البث المباشر</h2>
+      <div class="tools">
         <div class="legend">
-          <span><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--male);margin-inline-end:6px"></span>ذكور: <b id="nMale">0</b></span>
-          <span><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--female);margin-inline-end:6px"></span>إناث: <b id="nFemale">0</b></span>
+          <span><i class="sw" style="background:var(--tawaf)"></i>طائف</span>
+          <span><i class="sw" style="background:var(--stand)"></i>واقف</span>
+          <span><i class="sw" style="background:var(--walk)"></i>ماشٍ</span>
         </div>
+        <span class="cmode" id="cmode">المركز: —</span>
+        <button id="btnAuto">معايرة تلقائية</button>
+        <button id="btnPick">تحديد المركز يدوياً</button>
+        <button id="btnFull">ملء الشاشة</button>
       </div>
-      <div class="na" id="genderOff" style="display:none">تصنيف النوع غير مفعّل. من الكاميرا العلوية الدقة ضعيفة، شغّل البرنامج بـ <code>--gender</code> لو عايز تجرّبه.</div>
+    </div>
+    <div class="stage" id="stage">
+      <img id="video" alt="" style="display:none">
+      <div class="ph" id="ph"><b>جارٍ الاتصال بالخادم…</b></div>
+      <div class="hint">اضغط على الصورة عند مركز الكعبة</div>
+    </div>
+    <div class="total"><span class="k">إجمالي الأشخاص في الصورة</span><span class="v" id="kTotal">0</span></div>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <section class="panel">
+    <div class="hd"><h2>السجل الزمني</h2>
+      <div class="tools"><button id="btnCsv">تصدير CSV</button><button id="btnClear">مسح السجل</button></div>
+    </div>
+    <div class="chartwrap">
+      <canvas id="chart"></canvas>
+      <div class="legend" style="margin-top:8px">
+        <span><i class="sw" style="background:var(--navy)"></i>الإجمالي</span>
+        <span><i class="sw" style="background:var(--tawaf)"></i>طائفون</span>
+        <span><i class="sw" style="background:var(--stand)"></i>واقفون</span>
+        <span><i class="sw" style="background:var(--walk)"></i>ماشون</span>
+      </div>
+    </div>
+    <div class="facts">
+      <div class="fact"><div class="v" id="fPeak">0</div><div class="k">أعلى إجمالي</div></div>
+      <div class="fact"><div class="v" id="fPeakAt">—</div><div class="k">وقت الذروة</div></div>
+      <div class="fact"><div class="v" id="fAvg">0</div><div class="k">متوسط الإجمالي</div></div>
+      <div class="fact"><div class="v" id="fFps">—</div><div class="k">سرعة المعالجة (إطار/ثانية)</div></div>
+      <div class="fact"><div class="v" id="fLast">—</div><div class="k">آخر تحديث</div></div>
     </div>
   </section>
 
-  <section class="card chartbox">
-    <h2>تغيّر الأعداد مع الوقت</h2>
-    <canvas id="chart"></canvas>
-    <div class="keys">
-      <span><i style="background:var(--tawaf)"></i>طائفون</span>
-      <span><i style="background:var(--stand)"></i>واقفون</span>
-      <span><i style="background:var(--walk)"></i>ماشون</span>
-      <span><i style="background:var(--ink)"></i>الإجمالي</span>
+  <section class="panel" id="settings">
+    <div class="hd"><h2>الإعدادات</h2></div>
+
+    <div class="sec">
+      <h3>روابط الخوادم</h3>
+      <p class="note">تتصل اللوحة تلقائياً بأول خادم يستجيب من القائمة، وتنتقل للتالي لو انقطع. اكتب عنوان الخادم كاملاً (مثال: https://haram.example.com). رمز الإدارة اختياري ويلزم فقط لو الخادم يعمل بـ <code>--token</code>.</p>
+      <div id="srvRows"></div>
+      <div class="actions">
+        <button id="srvAdd">إضافة خادم</button>
+        <button class="solid" id="srvSave">حفظ وإعادة الاتصال</button>
+      </div>
     </div>
-  </section>
 
-  <section class="grid meta">
-    <div class="card"><div class="v" id="mPeak">0</div><div class="k">أعلى إجمالي</div></div>
-    <div class="card"><div class="v" id="mPeakAt">—</div><div class="k">وقت الذروة</div></div>
-    <div class="card"><div class="v" id="mAvg">0</div><div class="k">متوسط الإجمالي</div></div>
-    <div class="card"><div class="v" id="mFps">0</div><div class="k">إطار/ثانية (المعالجة)</div></div>
-    <div class="card"><div class="v" id="mLast">—</div><div class="k">آخر تحديث</div></div>
-  </section>
+    <div class="sec">
+      <h3>روابط البث على الخادم المتصل</h3>
+      <p class="note">يقبل رابط يوتيوب (بث مباشر) أو m3u8 أو rtsp. تُحفظ على الخادم ويبدأ التحليل فوراً، وتُعايَر الكعبة تلقائياً.</p>
+      <div id="streamRows"></div>
+      <div class="row">
+        <input type="text" class="nm" id="nsName" placeholder="اسم البث">
+        <input type="text" class="grow ltr" id="nsUrl" placeholder="https://www.youtube.com/watch?v=…">
+        <button class="solid" id="nsAdd">إضافة بث</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
 
-  <section class="card">
-    <h2>الإعدادات</h2>
-    <div class="settings">
-      <label>رابط البرنامج (الـ backend)
-        <input type="text" id="url" placeholder="http://127.0.0.1:8765/stats">
-      </label>
-      <label style="flex:0 1 160px">معدل التحديث
-        <select id="interval">
-          <option value="500">نصف ثانية</option>
-          <option value="1000">ثانية</option>
-          <option value="2000">ثانيتين</option>
-          <option value="5000">5 ثواني</option>
+    <div class="sec">
+      <h3>التحديث</h3>
+      <div class="row" style="border-top:0"><label for="interval" style="color:var(--mute);font-size:.88rem">معدل تحديث الأرقام</label>
+        <select id="interval" style="width:auto">
+          <option value="500">نصف ثانية</option><option value="1000">ثانية</option>
+          <option value="2000">ثانيتان</option><option value="5000">5 ثوانٍ</option>
         </select>
-      </label>
-      <button class="primary" id="btnConnect">اتصال</button>
-      <button id="btnDemo">وضع تجريبي</button>
-      <button id="btnCsv">تصدير CSV</button>
-      <button id="btnClear">مسح السجل</button>
+      </div>
     </div>
-    <details>
-      <summary>إزاي أشغّلها؟</summary>
-      <p class="help">1) شغّل البرنامج على جهازك: <code>python haram_counter.py --url "رابط البث"</code><br>
-      2) افتح اللوحة هنا واكتب <code>http://127.0.0.1:8765/stats</code> ثم اضغط «اتصال».<br>
-      3) المتصفح بيسمح لصفحة GitHub Pages تتصل بـ localhost في Chrome وEdge وFirefox. Safari ممكن يمنعها. لو البرنامج على سيرفر بعيد لازم رابط https (مثلاً عن طريق Cloudflare Tunnel).</p>
-    </details>
   </section>
 
-  <footer>الأرقام تقريبية وتعتمد على جودة الكاميرا والكشف والتتبع. اللوحة بتعرض أعداداً إجمالية فقط ولا تحفظ صوراً أو هويات.</footer>
+  <footer>الأرقام تقديرية وتعتمد على جودة الكاميرا والكشف والتتبع. تُعرض إحصاءات إجمالية فقط، ولا تُحفظ صور ولا هويات.</footer>
 </div>
 
 <script>
+/* ============================================================
+   إعداد الخوادم الافتراضية: ضع هنا رابط خادمك مرة واحدة لتتصل
+   اللوحة به تلقائياً لكل من يفتح الصفحة (مثلاً من GitHub Pages).
+   يمكن تعديل القائمة أيضاً من قسم «الإعدادات» أسفل الصفحة.
+   ============================================================ */
+const CONFIG = {
+  servers: [
+    // { name: 'الخادم الرئيسي', url: 'https://haram.example.com' },
+  ]
+};
+
 (function(){
   const $ = s => document.querySelector(s);
   const store = {
     get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } },
     set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt = n => Number(n || 0).toLocaleString('en-US');
-  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '0%';
+  const hhmmss = t => new Date(t).toLocaleTimeString('en-GB');
 
-  let url = store.get('haram_url', '');
+  let servers = (() => { try { const v = JSON.parse(store.get('haram_servers', 'null')); if (Array.isArray(v)) return v; } catch(e){} return CONFIG.servers.map(s => ({ ...s })); })();
   let interval = parseInt(store.get('haram_interval', '1000'), 10) || 1000;
-  let mode = url ? 'live' : 'demo';
-  let timer = null, failures = 0;
-  const MAX = 600;
-  let hist = [];
-  let peak = 0, peakAt = null, sum = 0, count = 0;
-
-  $('#url').value = url;
+  let srv = null, cams = [], cam = null, fails = 0, timer = null, picking = false, lastCalib = null;
+  const MAX = 600, H = {};
+  const hist = () => (H[cam] = H[cam] || { rows: [], peak: 0, peakAt: null, sum: 0, n: 0 });
   $('#interval').value = String(interval);
 
-  /* ---------- الحالة ---------- */
-  function setStatus(kind, text){
-    const d = $('#dot');
-    d.className = 'dot ' + kind;
-    $('#statusText').textContent = text;
+  /* ---------- شبكة ---------- */
+  async function fetchJSON(url, ms){
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 3500);
+    try { const r = await fetch(url, { signal: ctl.signal, cache: 'no-store' }); const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }
+    finally { clearTimeout(t); }
   }
-  function banner(msg){
-    const b = $('#banner');
-    if (msg){ b.textContent = msg; b.classList.add('show'); } else { b.classList.remove('show'); }
-  }
+  const api = (path, params) => {
+    const q = new URLSearchParams(params || {});
+    if (srv && srv.token && /\/(add|remove)$|center/.test(path)) q.set('token', srv.token);
+    return srv.url + path + (q.toString() ? '?' + q : '');
+  };
+  const getJSON = (path, params, ms) => fetchJSON(api(path, params), ms);
 
-  /* ---------- بيانات تجريبية ---------- */
-  let demoBase = { total: 1800, tawaf: 0.62, stand: 0.18, ihram: 0.55, male: 0.6 };
-  function demoSample(){
-    demoBase.total = Math.max(300, demoBase.total + (Math.random() - 0.5) * 80);
-    demoBase.tawaf = Math.min(0.85, Math.max(0.4, demoBase.tawaf + (Math.random() - 0.5) * 0.03));
-    demoBase.stand = Math.min(0.35, Math.max(0.08, demoBase.stand + (Math.random() - 0.5) * 0.02));
-    const total = Math.round(demoBase.total);
-    const tawaf = Math.round(total * demoBase.tawaf);
-    const standing = Math.round(total * demoBase.stand);
-    const walking = Math.max(0, total - tawaf - standing);
-    const ihram = Math.round(total * demoBase.ihram);
-    const male = Math.round(total * demoBase.male);
-    return {
-      ts: Date.now() / 1000, total, fps: +(8 + Math.random() * 3).toFixed(1),
-      motion: { tawaf, standing, walking },
-      ihram: { ihram, regular: total - ihram },
-      gender: { male, female: total - male }
-    };
+  function candidates(){
+    const out = [], add = s => { if (!s || !s.url) return; const u = s.url.trim().replace(/\/+$/, ''); if (u && !out.find(x => x.url === u)) out.push({ name: s.name || u, url: u, token: s.token || '' }); };
+    servers.forEach(add);
+    if (/^https?:$/.test(location.protocol) && !/github\.io$/.test(location.hostname)) add({ name: 'هذا الخادم', url: location.origin });
+    add({ name: 'الخادم المحلي', url: 'http://127.0.0.1:8765' });
+    return out;
   }
-
-  /* ---------- جلب البيانات ---------- */
-  async function fetchLive(){
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 3000);
-    try {
-      const r = await fetch(url, { signal: ctl.signal, cache: 'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return await r.json();
-    } finally { clearTimeout(t); }
-  }
-
-  async function tick(){
-    let d = null;
-    if (mode === 'demo'){
-      d = demoSample();
-      setStatus('demo', 'بيانات تجريبية');
-      banner('ده وضع تجريبي بأرقام مولّدة عشوائياً. اكتب رابط البرنامج من الإعدادات واضغط «اتصال» لعرض الأرقام الحقيقية.');
-    } else {
-      try {
-        d = await fetchLive();
-        failures = 0;
-        const age = Date.now() / 1000 - (d.ts || 0);
-        if (!d.ts || age > 8){
-          setStatus('bad', 'البرنامج متصل لكن البث متوقف');
-          banner('اللوحة متصلة بالبرنامج لكن مفيش أرقام جديدة. تأكد إن البث شغال وإن البرنامج بيعالج الإطارات.');
-        } else {
-          setStatus('live', 'متصل مباشر');
-          banner('');
-        }
-      } catch(e){
-        failures++;
-        setStatus('bad', 'غير متصل');
-        banner('تعذّر الاتصال بـ ' + url + '. تأكد إن البرنامج شغال وإن الرابط صحيح (وإن المتصفح بيسمح بالاتصال بـ localhost).');
-      }
+  async function discover(){
+    for (const s of candidates()){
+      try { const r = await fetchJSON(s.url + '/api/health', 2500); if (r && r.ok){ srv = s; return true; } } catch(e){}
     }
-    if (d) { push(d); render(d); }
-    schedule();
+    srv = null; return false;
   }
-  function schedule(){ clearTimeout(timer); timer = setTimeout(tick, interval); }
+
+  /* ---------- الحالة ---------- */
+  function setStatus(kind, text){ $('#dot').className = 'dot ' + kind; $('#statusText').textContent = text; }
+  function notice(msg){ const n = $('#notice'); if (msg){ n.textContent = msg; n.classList.add('show'); } else n.classList.remove('show'); }
+  const tickClock = () => { $('#clock').textContent = new Date().toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium' }); };
+  tickClock(); setInterval(tickClock, 1000);
+
+  /* ---------- جدول الأرقام ---------- */
+  const GROUPS = [
+    { title: 'الحركة', rows: [
+      { id: 'tawaf', label: 'طائفون', c: 'var(--tawaf)', get: d => d.motion.tawaf },
+      { id: 'standing', label: 'واقفون', c: 'var(--stand)', get: d => d.motion.standing },
+      { id: 'walking', label: 'ماشون (غير طواف)', c: 'var(--walk)', get: d => d.motion.walking } ] },
+    { title: 'الملابس', rows: [
+      { id: 'ihram', label: 'لباس الإحرام', c: 'var(--navy)', get: d => d.ihram.ihram },
+      { id: 'regular', label: 'ملابس عادية', c: '#8a96a6', get: d => d.ihram.regular } ] },
+    { title: 'النوع', gender: true, rows: [
+      { id: 'male', label: 'ذكور', c: 'var(--navy)', get: d => d.gender && d.gender.male },
+      { id: 'female', label: 'إناث', c: '#8a96a6', get: d => d.gender && d.gender.female } ] }
+  ];
+  $('#groups').innerHTML = GROUPS.map((g, gi) => `
+    <div class="grp"><h3>${g.title}</h3>
+      <table id="g${gi}">${g.rows.map(r => `
+        <tr><td><i class="sw" style="background:${r.c}"></i>${r.label}</td>
+        <td class="n" id="n_${r.id}">0</td><td class="p" id="p_${r.id}">0%</td>
+        <td class="m"><div class="meter"><span id="m_${r.id}" style="width:0;background:${r.c}"></span></div></td></tr>`).join('')}
+      </table>
+      ${g.gender ? '<div class="na" id="genderOff" style="display:none">تصنيف النوع غير مفعّل. من الكاميرا العلوية دقته ضعيفة، ويُفعَّل بالخيار <code>--gender</code> عند تشغيل الخادم.</div>' : ''}
+    </div>`).join('');
+
+  /* ---------- تبويبات البث والفيديو ---------- */
+  function renderTabs(){
+    const t = $('#tabs');
+    t.style.display = cams.length > 1 ? 'flex' : 'none';
+    t.innerHTML = cams.map(c => `<button class="tab${c.id === cam ? ' on' : ''}" data-id="${c.id}">${esc(c.name)}</button>`).join('');
+    t.querySelectorAll('.tab').forEach(b => b.onclick = () => { cam = parseInt(b.dataset.id, 10); lastCalib = null; renderTabs(); setVideo(); tick(); });
+    const cur = cams.find(c => c.id === cam);
+    $('#camTitle').textContent = cur ? cur.name : 'البث المباشر';
+  }
+  function placeholder(html){ const v = $('#video'); v.style.display = 'none'; $('#ph').style.display = ''; $('#ph').innerHTML = html; }
+  function setVideo(){
+    const v = $('#video');
+    if (!srv){ placeholder('<b>جارٍ البحث عن الخادم…</b><span>تأكد من روابط الخوادم في الإعدادات أسفل الصفحة</span>'); v.removeAttribute('src'); return; }
+    if (cam == null){ placeholder('<b>لا توجد بثوث</b><span>أضف رابط بث من الإعدادات أسفل الصفحة</span>'); v.removeAttribute('src'); return; }
+    placeholder('<b>جارٍ تحميل البث…</b>');
+    const mine = srv.url + '/' + cam;
+    v.dataset.k = mine;
+    v.onload = () => { v.style.display = ''; $('#ph').style.display = 'none'; };
+    v.onerror = () => { placeholder('<b>تعذّر عرض الفيديو</b><span>جارٍ إعادة المحاولة…</span>'); setTimeout(() => { if (srv && v.dataset.k === mine) v.src = api('/video', { cam, t: Date.now() }); }, 4000); };
+    v.src = api('/video', { cam, t: Date.now() });
+  }
+
+  /* ---------- المركز ---------- */
+  function flash(m){ $('#msg').textContent = m || ''; }
+  async function admin(path, params){
+    try { flash(''); return await getJSON(path, params); }
+    catch(e){ flash(e.status === 403 ? 'مرفوض: رمز الإدارة مطلوب أو خاطئ. أدخله في «روابط الخوادم» ثم احفظ.' : 'تعذّر تنفيذ الطلب: ' + e.message); notice(e.status === 403 ? 'مرفوض: رمز الإدارة مطلوب أو خاطئ (انظر الإعدادات).' : ''); return null; }
+  }
+  $('#btnAuto').onclick = async () => { if (srv && cam != null && await admin('/api/center_auto', { cam })) { lastCalib = null; tick(); renderStreams(); } };
+  $('#btnPick').onclick = () => { if (!srv || cam == null) return; picking = !picking; $('#stage').classList.toggle('pick', picking); $('#btnPick').classList.toggle('on', picking); };
+  $('#stage').addEventListener('click', async e => {
+    if (!picking) return;
+    const v = $('#video'), r = v.getBoundingClientRect();
+    const nw = v.naturalWidth || r.width, nh = v.naturalHeight || r.height, s = Math.min(r.width / nw, r.height / nh);
+    const dw = nw * s, dh = nh * s, ox = (r.width - dw) / 2, oy = (r.height - dh) / 2;
+    const x = (e.clientX - r.left - ox) / dw, y = (e.clientY - r.top - oy) / dh;
+    if (x < 0 || x > 1 || y < 0 || y > 1) return;
+    picking = false; $('#stage').classList.remove('pick'); $('#btnPick').classList.remove('on');
+    if (await admin('/api/center', { cam, x: x.toFixed(4), y: y.toFixed(4) })) { tick(); renderStreams(); }
+  });
+  $('#btnFull').onclick = () => { const s = $('#stage'); document.fullscreenElement ? document.exitFullscreen() : (s.requestFullscreen && s.requestFullscreen()); };
+
+  /* ---------- الحلقة الرئيسية (تلقائية بالكامل) ---------- */
+  async function loadCams(){
+    if (!srv) return;
+    try {
+      const list = await getJSON('/api/cams');
+      cams = Array.isArray(list) ? list : [];
+      if (!cams.find(c => c.id === cam)) cam = cams.length ? cams[0].id : null;
+    } catch(e){}
+    renderTabs();
+  }
+  async function connect(){
+    setStatus('wait', 'جارٍ البحث عن الخادم');
+    notice('جارٍ البحث عن الخادم… إن لم يتصل تلقائياً فتحقق من روابط الخوادم في الإعدادات.');
+    if (!(await discover())){ setStatus('bad', 'غير متصل'); setVideo(); renderServers(); renderStreams(); return false; }
+    fails = 0; await loadCams(); setVideo(); renderServers(); renderStreams(); return true;
+  }
+  async function tick(){
+    clearTimeout(timer);
+    if (!srv){ if (!(await connect())){ timer = setTimeout(tick, 5000); return; } }
+    let d = null;
+    if (cam == null){ setStatus('live', 'متصل · ' + srv.name); notice('لا توجد بثوث على الخادم. أضف رابط بث من قسم الإعدادات أسفل الصفحة.'); renderTabs(); await loadCams(); timer = setTimeout(tick, 3000); return; }
+    try {
+      d = await getJSON('/api/stats', { cam });
+      fails = 0;
+      const age = Date.now() / 1000 - (d.ts || 0);
+      if (d.status !== 'live' || age > 8){
+        setStatus('wait', d.status === 'starting' ? 'جارٍ التهيئة' : 'البث غير متاح');
+        notice(d.status === 'starting' ? 'جارٍ تهيئة النموذج وفتح البث…' : 'لا توجد إطارات جديدة من البث. سيعيد الخادم الاتصال تلقائياً.');
+        updateCenterLabel(d); d = null;
+      } else {
+        setStatus('live', 'متصل · ' + srv.name);
+        notice(d.center_mode === 'auto' && !d.calibrated ? 'جارٍ المعايرة التلقائية لمركز الكعبة. تتحسن دقة تمييز الطواف بعد اكتمالها (بضع دقائق من حركة الطائفين).' : '');
+      }
+    } catch(e){
+      if (++fails >= 3){ srv = null; fails = 0; setStatus('bad', 'انقطع الاتصال'); timer = setTimeout(tick, 500); return; }
+    }
+    if (d){ push(d); render(d); }
+    timer = setTimeout(tick, interval);
+  }
+  setInterval(() => { if (srv) { loadCams(); renderStreams(); } }, 30000);
 
   /* ---------- السجل ---------- */
   function push(d){
-    const fresh = mode === 'demo' || (Date.now() / 1000 - d.ts) <= 8;
-    if (!fresh) return;
-    const row = {
-      t: Date.now(), total: d.total,
-      tawaf: d.motion.tawaf, standing: d.motion.standing, walking: d.motion.walking,
-      ihram: d.ihram.ihram, regular: d.ihram.regular,
-      male: d.gender ? d.gender.male : '', female: d.gender ? d.gender.female : ''
-    };
-    hist.push(row);
-    if (hist.length > MAX) hist.shift();
-    count++; sum += d.total;
-    if (d.total >= peak){ peak = d.total; peakAt = row.t; }
+    const h = hist(), row = { t: Date.now(), total: d.total, tawaf: d.motion.tawaf, standing: d.motion.standing, walking: d.motion.walking,
+      ihram: d.ihram.ihram, regular: d.ihram.regular, male: d.gender ? d.gender.male : '', female: d.gender ? d.gender.female : '' };
+    h.rows.push(row); if (h.rows.length > MAX) h.rows.shift();
+    h.n++; h.sum += d.total; if (d.total >= h.peak){ h.peak = d.total; h.peakAt = row.t; }
   }
-
-  /* ---------- العرض ---------- */
-  function segBar(el, parts){
-    const tot = parts.reduce((a, p) => a + p.v, 0);
-    el.innerHTML = '';
-    parts.forEach(p => {
-      const s = document.createElement('span');
-      const w = tot ? p.v / tot * 100 : 0;
-      s.style.width = w + '%';
-      s.style.background = p.c;
-      s.textContent = w >= 12 ? Math.round(w) + '%' : '';
-      el.appendChild(s);
-    });
+  function updateCenterLabel(d){
+    $('#cmode').textContent = 'المركز: ' + (d.center_mode === 'manual' ? 'يدوي' : (d.calibrated ? 'تلقائي (معايَر)' : 'تلقائي (قيد المعايرة)'));
   }
   function render(d){
-    const m = d.motion, ih = d.ihram;
+    updateCenterLabel(d);
     $('#kTotal').textContent = fmt(d.total);
-    $('#kTawaf').textContent = fmt(m.tawaf);   $('#pTawaf').textContent = pct(m.tawaf, d.total);
-    $('#kStand').textContent = fmt(m.standing);$('#pStand').textContent = pct(m.standing, d.total);
-    $('#kWalk').textContent = fmt(m.walking);  $('#pWalk').textContent = pct(m.walking, d.total);
-
-    $('#nIhram').textContent = fmt(ih.ihram);
-    $('#nReg').textContent = fmt(ih.regular);
-    segBar($('#barIhram'), [{v: ih.ihram, c: 'var(--ihram)'}, {v: ih.regular, c: 'var(--regular)'}]);
-
-    if (d.gender){
-      $('#genderOn').style.display = ''; $('#genderOff').style.display = 'none';
-      $('#nMale').textContent = fmt(d.gender.male);
-      $('#nFemale').textContent = fmt(d.gender.female);
-      segBar($('#barGender'), [{v: d.gender.male, c: 'var(--male)'}, {v: d.gender.female, c: 'var(--female)'}]);
-    } else {
-      $('#genderOn').style.display = 'none'; $('#genderOff').style.display = '';
-    }
-
-    $('#mPeak').textContent = fmt(peak);
-    $('#mPeakAt').textContent = peakAt ? new Date(peakAt).toLocaleTimeString('ar-EG') : '—';
-    $('#mAvg').textContent = fmt(count ? Math.round(sum / count) : 0);
-    $('#mFps').textContent = d.fps != null ? d.fps : '—';
-    $('#mLast').textContent = new Date().toLocaleTimeString('ar-EG');
+    GROUPS.forEach(g => {
+      const vals = g.rows.map(r => r.get(d)), off = g.gender && !d.gender;
+      if (g.gender){ $('#genderOff').style.display = off ? '' : 'none'; $('#g2').style.display = off ? 'none' : ''; }
+      const sum = off ? 0 : vals.reduce((a, b) => a + (b || 0), 0);
+      g.rows.forEach((r, i) => {
+        const v = off ? 0 : (vals[i] || 0), p = sum ? v / sum * 100 : 0;
+        $('#n_' + r.id).textContent = fmt(v); $('#p_' + r.id).textContent = Math.round(p) + '%'; $('#m_' + r.id).style.width = p + '%';
+      });
+    });
+    const h = hist();
+    $('#fPeak').textContent = fmt(h.peak); $('#fPeakAt').textContent = h.peakAt ? hhmmss(h.peakAt) : '—';
+    $('#fAvg').textContent = fmt(h.n ? Math.round(h.sum / h.n) : 0);
+    $('#fFps').textContent = d.fps != null ? d.fps : '—'; $('#fLast').textContent = hhmmss(Date.now());
     drawChart();
   }
 
   /* ---------- الرسم البياني ---------- */
-  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   function drawChart(){
-    const cv = $('#chart');
-    const dpr = window.devicePixelRatio || 1;
-    const W = cv.clientWidth, H = cv.clientHeight;
-    cv.width = W * dpr; cv.height = H * dpr;
-    const g = cv.getContext('2d');
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, W, H);
-    const pad = { l: 12, r: 44, t: 10, b: 24 };
-    const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-    const line = css('--line'), mute = css('--mute');
-    const series = [
-      ['total', css('--ink')], ['tawaf', css('--tawaf')],
-      ['standing', css('--stand')], ['walking', css('--walk')]
-    ];
-    const maxV = Math.max(10, ...hist.map(r => r.total));
-    const top = Math.ceil(maxV * 1.1 / 10) * 10;
-    g.font = '11px Cairo, sans-serif';
-    g.fillStyle = mute; g.strokeStyle = line; g.lineWidth = 1;
+    const cv = $('#chart'), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, Hh = cv.clientHeight;
+    cv.width = W * dpr; cv.height = Hh * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
+    const rows = cam == null ? [] : hist().rows, pad = { l: 8, r: 46, t: 10, b: 22 };
+    const iw = W - pad.l - pad.r, ih = Hh - pad.t - pad.b, line = css('--line'), mute = css('--mute');
+    const top = Math.ceil(Math.max(10, ...rows.map(r => r.total)) * 1.1 / 10) * 10;
+    g.font = '11px Cairo, sans-serif'; g.lineWidth = 1;
     for (let i = 0; i <= 4; i++){
       const y = pad.t + ih - ih * i / 4;
-      g.beginPath(); g.moveTo(pad.l, y); g.lineTo(pad.l + iw, y); g.stroke();
-      g.textAlign = 'left';
-      g.fillText(fmt(Math.round(top * i / 4)), pad.l + iw + 6, y + 4);
+      g.strokeStyle = line; g.beginPath(); g.moveTo(pad.l, y); g.lineTo(pad.l + iw, y); g.stroke();
+      g.fillStyle = mute; g.textAlign = 'left'; g.fillText(fmt(Math.round(top * i / 4)), pad.l + iw + 6, y + 4);
     }
-    if (hist.length < 2){
-      g.textAlign = 'center'; g.fillText('في انتظار بيانات…', W / 2, H / 2); return;
-    }
-    const n = hist.length;
-    const x = i => pad.l + iw - iw * (n - 1 - i) / Math.max(1, MAX - 1) * (MAX - 1) / (MAX - 1);
-    const xs = i => pad.l + iw - (iw * (n - 1 - i)) / (MAX - 1);
-    series.forEach(([k, col]) => {
-      g.beginPath(); g.strokeStyle = col; g.lineWidth = k === 'total' ? 2.2 : 1.8;
-      hist.forEach((r, i) => {
-        const px = xs(i), py = pad.t + ih - ih * (r[k] / top);
-        i ? g.lineTo(px, py) : g.moveTo(px, py);
-      });
+    if (rows.length < 2){ g.fillStyle = mute; g.textAlign = 'center'; g.fillText('في انتظار البيانات', W / 2, Hh / 2); return; }
+    const n = rows.length, xs = i => pad.l + iw * i / (n - 1);
+    [['total', css('--navy'), 2.4], ['tawaf', css('--tawaf'), 1.6], ['standing', css('--stand'), 1.6], ['walking', css('--walk'), 1.6]].forEach(([k, col, lw]) => {
+      g.beginPath(); g.strokeStyle = col; g.lineWidth = lw;
+      rows.forEach((r, i) => { const y = pad.t + ih - ih * (r[k] / top); i ? g.lineTo(xs(i), y) : g.moveTo(xs(i), y); });
       g.stroke();
     });
-    g.fillStyle = mute; g.textAlign = 'left';
-    g.fillText(new Date(hist[0].t).toLocaleTimeString('ar-EG'), xs(0) - 4, H - 6);
-    g.textAlign = 'right';
-    g.fillText(new Date(hist[n - 1].t).toLocaleTimeString('ar-EG'), xs(n - 1) + 4, H - 6);
+    g.fillStyle = mute; g.textAlign = 'left'; g.fillText(hhmmss(rows[0].t), pad.l, Hh - 6);
+    g.textAlign = 'right'; g.fillText(hhmmss(rows[n - 1].t), pad.l + iw, Hh - 6);
   }
-
-  /* ---------- الأزرار ---------- */
-  $('#btnConnect').onclick = () => {
-    const v = $('#url').value.trim();
-    if (!v){ $('#url').focus(); return; }
-    url = v; store.set('haram_url', url);
-    mode = 'live'; failures = 0; resetHist(); tick();
-  };
-  $('#btnDemo').onclick = () => { mode = 'demo'; resetHist(); tick(); };
-  $('#interval').onchange = e => {
-    interval = parseInt(e.target.value, 10); store.set('haram_interval', String(interval)); schedule();
-  };
-  $('#btnClear').onclick = resetHist;
-  function resetHist(){ hist = []; peak = 0; peakAt = null; sum = 0; count = 0; drawChart(); }
-  $('#btnCsv').onclick = () => {
-    if (!hist.length) return;
-    const head = 'time,total,tawaf,standing,walking,ihram,regular,male,female';
-    const rows = hist.map(r => [new Date(r.t).toISOString(), r.total, r.tawaf, r.standing, r.walking, r.ihram, r.regular, r.male, r.female].join(','));
-    const blob = new Blob([head + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'haram_counts.csv'; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  };
   window.addEventListener('resize', drawChart);
-  if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
 
-  tick();
+  /* ---------- الإعدادات: الخوادم ---------- */
+  let editing = [];
+  function renderServers(){
+    editing = servers.length ? servers.map(s => ({ ...s })) : [];
+    paintServers();
+  }
+  function paintServers(){
+    const box = $('#srvRows');
+    if (!editing.length){ box.innerHTML = '<div class="na">لا توجد خوادم محفوظة. تحاول اللوحة تلقائياً الخادم المحلي <code>http://127.0.0.1:8765</code> ثم أي خادم تضيفه هنا.</div>'; return; }
+    box.innerHTML = editing.map((s, i) => {
+      const live = srv && srv.url === (s.url || '').trim().replace(/\/+$/, '');
+      return `<div class="row"><span class="sdot ${live ? 'ok' : ''}" title="${live ? 'متصل' : ''}"></span>
+        <input type="text" class="nm" data-i="${i}" data-f="name" placeholder="اسم الخادم" value="${esc(s.name)}">
+        <input type="text" class="grow ltr" data-i="${i}" data-f="url" placeholder="https://haram.example.com" value="${esc(s.url)}">
+        <input type="password" class="tk ltr" data-i="${i}" data-f="token" placeholder="رمز الإدارة (اختياري)" value="${esc(s.token)}" autocomplete="off">
+        <button class="danger" data-del="${i}">حذف</button></div>`;
+    }).join('');
+  }
+  $('#srvRows').addEventListener('input', e => { const t = e.target; if (t.dataset.f) editing[+t.dataset.i][t.dataset.f] = t.value; });
+  $('#srvRows').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (b){ editing.splice(+b.dataset.del, 1); paintServers(); } });
+  $('#srvAdd').onclick = () => { editing.push({ name: '', url: '', token: '' }); paintServers(); };
+  $('#srvSave').onclick = async () => {
+    servers = editing.filter(s => (s.url || '').trim()).map(s => ({ name: (s.name || '').trim(), url: s.url.trim().replace(/\/+$/, ''), token: s.token || '' }));
+    store.set('haram_servers', JSON.stringify(servers));
+    srv = null; fails = 0; clearTimeout(timer); tick();
+  };
+
+  /* ---------- الإعدادات: البثوث ---------- */
+  async function renderStreams(){
+    const box = $('#streamRows');
+    if (!srv){ box.innerHTML = '<div class="na">غير متصل بخادم.</div>'; return; }
+    try {
+      const list = await getJSON('/api/streams');
+      box.innerHTML = list.length ? list.map(s => `<div class="row">
+        <b class="nm">${esc(s.name)}</b><span class="url" title="${esc(s.url)}">${esc(s.url)}</span>
+        <span class="tag">${s.center_mode === 'manual' ? 'مركز يدوي' : (s.calibrated ? 'معايرة تلقائية' : 'قيد المعايرة')}</span>
+        <button class="danger" data-rm="${s.id}">حذف</button></div>`).join('')
+        : '<div class="na">لا توجد بثوث. أضف أول رابط بث من الأسفل.</div>';
+    } catch(e){ box.innerHTML = '<div class="na">تعذّر تحميل قائمة البثوث.</div>'; }
+  }
+  $('#streamRows').addEventListener('click', async e => {
+    const b = e.target.closest('[data-rm]'); if (!b) return;
+    if (!confirm('حذف هذا البث؟')) return;
+    if (await admin('/api/streams/remove', { id: b.dataset.rm })){ await loadCams(); setVideo(); renderStreams(); tick(); }
+  });
+  $('#nsAdd').onclick = async () => {
+    const url = $('#nsUrl').value.trim(), name = $('#nsName').value.trim();
+    if (!srv){ flash('غير متصل بخادم.'); return; }
+    if (!url){ $('#nsUrl').focus(); return; }
+    const r = await admin('/api/streams/add', { url, name });
+    if (r && r.ok){ $('#nsUrl').value = ''; $('#nsName').value = ''; await loadCams(); cam = r.id; renderTabs(); setVideo(); renderStreams(); tick(); }
+  };
+  $('#interval').onchange = e => { interval = parseInt(e.target.value, 10); store.set('haram_interval', String(interval)); tick(); };
+
+  /* ---------- السجل: أزرار ---------- */
+  $('#btnClear').onclick = () => { H[cam] = null; drawChart(); };
+  $('#btnCsv').onclick = () => {
+    const rows = cam == null ? [] : hist().rows; if (!rows.length) return;
+    const head = 'time,total,tawaf,standing,walking,ihram,regular,male,female';
+    const body = rows.map(r => [new Date(r.t).toISOString(), r.total, r.tawaf, r.standing, r.walking, r.ihram, r.regular, r.male, r.female].join(','));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([head + '\n' + body.join('\n')], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'haram_counts.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  /* ---------- تشغيل تلقائي ---------- */
+  renderServers(); renderStreams(); setVideo(); tick();
 })();
 </script>
 </body>
